@@ -65,6 +65,40 @@ JD (found) → /match → data/applications.csv → /tailor → apply → /inter
 - Manual sweep of any app-gated boards in `data/scout-lanes.md`;
   paste anything promising into `/match`.
 
+## Career-strategy layer (monthly + on demand)
+
+One level above the hunt: `data/career-map.yaml` holds every life path
+you're weighing (employ, freelance, build, study, relocate) as cited
+evidence plus dated, falsifiable checkpoints. Stances
+(pursuing/hedged/parked/killed) are YOURS alone — every rule lives in
+the map's own header. If you don't know what you should do for money
+or career, this layer is where that question gets answered with
+evidence instead of vibes.
+
+- **/crossroads (on demand, ~2x/year or at a decision moment).** The
+  heavy mapping session (~1-2h): diverge → research → attack →
+  synthesize, one phase per response, you advance it. It proposes
+  stances and rewrites the map's regenerable parts only at its
+  Phase-4 approval gate — you set every stance. Run it in a fresh
+  session with nothing else on the plate. A first-ever run answering
+  "which game should I even play?" is exactly what it's for.
+- **Monthly re-score (~10 min, on your calendar).** Open the map, and
+  for each DUE unscored checkpoint on a pursuing/hedged path, read its
+  `resolution_source` and score right/wrong/ambiguous per the header's
+  60-second rule. A fired `kill_if`/`boost_if` is your pre-registered
+  default — keep it, or override it with a written reason in the
+  commit. Confirm-or-clear any `seeded:` markers. Commit with the
+  header's `career-map:` format — an empty session still counts.
+- **The tree (the sensemaking view).** `python3 build_career_tree.py
+  --open` renders dist/career-tree.html — past decisions, NOW, and
+  every path's dated checkpoints on one timeline. Regenerate at the
+  re-score or a /crossroads session; it reads the map, events.csv,
+  and git — never writes back.
+- When an outcome lands (any day): write the pre-registered
+  `data/events.csv` mirror row the same day. A pursuing-stance change
+  means running `/strategy` afterward (the map is its mandate). A
+  fired kill_if or a landed outcome is a /crossroads decision moment.
+
 ## Command quick-reference
 
 - `/onboard` .......... first-run interview; builds your personal files
@@ -72,7 +106,13 @@ JD (found) → /match → data/applications.csv → /tailor → apply → /inter
 - `/match <JD>` ....... score one JD, append tracker row + first event
 - `/daily` ............ morning opener: incremental pass, 3 priorities
 - `/strategist <role>`  ad-hoc recruiter / pm / expert reasoning
-- `/strategy` ......... draft/refresh data/strategy.md (approval-gated)
+- `/strategy` ......... draft/refresh data/strategy.md (approval-gated;
+                        preflights career-map.yaml — pursuing stance =
+                        mandate line)
+- `/crossroads` ....... life-path mapping, on demand ~2x/yr or at a real
+                        decision moment; rewrites data/career-map.yaml
+                        except the non-regenerable set; stances are
+                        yours alone, written only at its Phase-4 gate
 - `/tailor <id>` ...... tailored resume pair into tailored/, lint, track
 - `/audit <file>` ..... 3-pass content audit (truth / voice / structure)
 - `/interview <id>` ... text mock via interviewer agent; `sync` logs voice rows
@@ -82,6 +122,9 @@ JD (found) → /match → data/applications.csv → /tailor → apply → /inter
 - `resume_lint.py` .... deterministic formatting gate (run by /tailor)
 - `build_dashboard.py`  read-only tracker dashboard — tiles, funnel,
                         action queue, searchable table (`--serve` = live)
+- `build_career_tree.py` career decision timeline tree →
+                        dist/career-tree.html (regenerate at the
+                        re-score / crossroads; read-only)
 
 ## Voice interview satellite (optional)
 

@@ -32,6 +32,12 @@ this explicit command, never silently mid-conversation.
 
 ## Evidence rule
 
+- Mandate preflight: read data/career-map.yaml first — its `pursuing`
+  path(s) are the mandate this whole document positions within (the
+  career-strategy layer above this hunt). A stance still carrying a
+  `seeded:` marker counts as the mandate, but the draft must flag it
+  as unconfirmed. Skip silently if the map has no paths yet; never
+  edit it from here.
 - Ground every section in master.md + the logged-JD signals in the
   tracker (and the competency map if it exists). No section on vibes.
 - Empty tracker → label the draft "PROVISIONAL (no JDs yet)" and say

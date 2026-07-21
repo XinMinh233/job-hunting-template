@@ -1,0 +1,103 @@
+# career-map.yaml — your life-path decision map.
+#
+# PURPOSE: one row per LIFE PATH — employed roles, freelancing,
+# solopreneur/product, further study, relocation — each held as cited
+# evidence plus falsifiable, dated, scoreable predictions. Direction is
+# a decision that gets checked against reality, not a drift. If you
+# don't know what you should do for money or career, /crossroads builds
+# this map with you; the monthly re-score keeps it honest.
+#
+# HUMAN MANUAL: README.md "Career-strategy layer". Written by hand or
+# by /crossroads on your approval. Nothing here runs on a trigger, a
+# schedule, or a deployed agent.
+#
+# STANCE IS YOURS ALONE. stance (pursuing | hedged | parked | killed)
+# is set or changed by you and nobody else. AI (/crossroads, the
+# strategist) proposes, ranks, and attacks; it never sets or flips a
+# stance. A seeded stance carries a `seeded:` marker and awaits your
+# confirmation; confirm-or-clear is a step of every re-score (confirm =
+# keep the stance, delete the marker; clear = set your own stance value
+# and delete the marker). ONE PRE-REGISTERED EXCEPTION (a default you
+# sign at first approval, executed BY YOUR OWN HAND at the re-score,
+# never by /crossroads): a stance still seeded after two re-scores is
+# set to parked (never to a guess) and the marker removed. Count
+# re-scores via `git log --oneline --grep "career-map: re-score"`.
+#
+# EDIT RULES:
+# - NON-REGENERABLE SET — /crossroads passes these through verbatim:
+#   scored checkpoints, ALL stance values together with their `seeded:`
+#   markers, and tombstones. /crossroads may only write a stance value
+#   you explicitly set in that session. Everything else is a
+#   regenerable cache it may rewrite.
+# - KILL = TOMBSTONE, NO QUIET BURIAL: a path collapses to a tombstone
+#   only after its already-due checkpoints carry a score (right, wrong,
+#   or ambiguous) or an explicit written void with a reason. The
+#   tombstone keeps the final right/wrong/ambiguous tally.
+# - CAPS: at most 3 pending checkpoints per path EXCLUDING one
+#   in-flight near gate (max 4 live), and about 6 non-killed paths. The
+#   near gate is the path's single OWN-ACTION checkpoint (your next
+#   move, not the world's response), at most one per path, its id
+#   suffixed "-gate". The 10-minute re-score survives by construction.
+#
+# SCORING (the ~10-minute re-score — monthly, on your calendar):
+# - 60-SECOND RULE: a due checkpoint must be scorable right/wrong in
+#   under a minute by reading its resolution_source. If it can't be,
+#   score it ambiguous — ambiguous means the CLAIM's wording is at
+#   fault, never the scorer. The next /crossroads must rewrite any
+#   ambiguous-scored claim, but only after first attempting to
+#   adjudicate the ORIGINAL claim right/wrong from its
+#   resolution_source.
+# - AMBIGUOUS NEVER DEFUSES A kill_if: the kill_if discussion runs on
+#   an ambiguous score exactly as on wrong.
+# - "NOBODY CHECKED" IS NOT A SCORE: a session that leaves a due
+#   checkpoint unread is not a re-score — do not commit it as one. When
+#   the source is a local file, "unresolvable" does not exist; read it.
+# - An empty session (nothing due) still counts and still commits:
+#   "career-map: re-score YYYY-MM-DD (nothing due | <one-line>)". Git
+#   is the whole history — no version field, no changelog. ALL writers
+#   of this file commit under the "career-map:" prefix, so one grep
+#   reads its full history.
+#
+# EVIDENCE (one owner per fact):
+# - fit: POINTERS into master.md ONLY — cited, never copied, never
+#   invented. No restated figures: the owner's numbers drift the moment
+#   the owner updates them.
+# - market: every claim cited + dated + labeled with kind:
+#   base-rate | survivor-sample | anecdote | marketing | record.
+#   A marketing claim ("top 3%") is NEVER usable as a base rate.
+# - confidence: null until a cited base rate exists — a guessed number
+#   is worse than an honest null. Only you or a /crossroads research
+#   pass with a citation replaces a null. ONE exception: an own-action
+#   gate may carry your confirmed intention-as-odds without a base rate
+#   (the planning-fallacy caveat noted); such numbers are excluded from
+#   any calibration read of world-facing claims.
+#
+# CHECKPOINT SCHEMA (every field written at WRITE time):
+#   id                 unique within the path; the own-action near
+#                      gate's id ends in "-gate"
+#   claim              one falsifiable sentence a stranger could score —
+#                      assert ONLY what the resolution_source can
+#                      resolve
+#   due                ISO date, unquoted; an undated prediction is not
+#                      a prediction
+#   confidence         0-1 or null: the probability the claim scores
+#                      RIGHT at its due date. See EVIDENCE.
+#   resolution_source  pre-registered: the exact file / record where
+#                      the answer will be read. Canonical source must
+#                      be stranger-readable (a repo file); external
+#                      portals are its upstream.
+#   kill_if            what a miss means: your pre-registered DEFAULT
+#                      stance move, overridable only by a written
+#                      reason in the re-score commit. Enumerate the
+#                      wrong-without-trigger branch at write time.
+#   boost_if           what a hit means (same discipline).
+#   scored             right | wrong | ambiguous — set at a re-score,
+#                      then frozen
+#
+# READ-PATH (what keeps this map from write-only death): /strategy
+# reads the pursuing stance as strategy.md's mandate line at every
+# refresh. Parked paths are silent until you reopen them.
+
+paths: []
+# Written by /crossroads on your approval. Run it when you genuinely
+# don't know which game to play — or at a real decision moment.
