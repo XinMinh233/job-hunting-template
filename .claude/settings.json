@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(python3 build_resumes.py:*)",
+      "Bash(python3 resume_lint.py:*)",
+      "Bash(python3 build_dashboard.py:*)",
+      "Bash(git log:*)",
+      "Bash(git status:*)",
+      "Bash(git fetch:*)"
+    ]
+  }
+}

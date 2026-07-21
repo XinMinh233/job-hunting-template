@@ -1,0 +1,231 @@
+/* Apple-restrained resume — single column, ATS-safe. Balanced density is the :root baseline. */
+
+/* Type scale, weights, spacing, page, ink, links — all tunable here. */
+:root {
+  /* Type scale (balanced baseline) */
+  --fs-name: 25px;
+  --fs-h2: 12px;
+  --fs-h3: 13.5px;
+  --fs-body: 11px;
+  --fs-small: 10px;
+
+  /* Weights */
+  --fw-normal: 400;
+  --fw-medium: 550;
+  --fw-bold: 650;
+
+  /* Spacing scale (consistent ~1.5 ratio) */
+  --space-1: 3px;
+  --space-2: 5px;
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 18px;
+  --section-gap: 18px;
+  --bullet-gap: 4px;
+
+  /* Page frame (screen only) */
+  --page-width: 210mm;
+  --page-pad-x: 22mm;
+  --page-pad-y: 20mm;
+
+  /* Ink */
+  --ink: #1a1a1a;
+  --ink-soft: #6a6a6a;
+  --rule: #d9d9d9;
+
+  /* Links */
+  --link-color: var(--ink);
+  --link-underline-offset: 2px;
+  --link-underline-thickness: 0.5px;
+
+  /* Type family — SF-family system stack, no web fonts. CJK fallbacks are
+     explicit: without them the print/PDF path can drop Chinese glyphs even
+     though on-screen rendering silently substitutes them. */
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+}
+
+/* Density: airy — override sizes/spacing only, never colors/fonts/structure. */
+body.density-airy {
+  --fs-name: 28px;
+  --fs-h2: 12.5px;
+  --fs-h3: 14.5px;
+  --fs-body: 11.5px;
+  --fs-small: 10.5px;
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 10px;
+  --space-4: 15px;
+  --space-5: 22px;
+  --section-gap: 24px;
+  --bullet-gap: 6px;
+  --page-pad-y: 24mm;
+}
+
+/* Density: compact — override sizes/spacing only. */
+body.density-compact {
+  --fs-name: 22px;
+  --fs-h2: 11px;
+  --fs-h3: 12.5px;
+  --fs-body: 10px;
+  --fs-small: 9px;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 9px;
+  --space-5: 13px;
+  --section-gap: 13px;
+  --bullet-gap: 3px;
+  --page-pad-y: 16mm; /* match @page print margin — screen preview = print frame */
+}
+
+/* Page surface */
+body {
+  margin: 0;
+  padding: 24px 12px;
+  background: #ececec;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* The "sheet" — centered A4 block */
+main {
+  box-sizing: border-box;
+  width: var(--page-width);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: var(--page-pad-y) var(--page-pad-x);
+  background: #fff;
+}
+
+/* Name */
+h1 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--fs-name);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* Contact line (first <p> after h1) */
+h1 + p {
+  margin: 0 0 var(--section-gap);
+  font-size: var(--fs-small);
+  color: var(--ink-soft);
+  letter-spacing: 0.005em;
+}
+
+/* Section headers */
+h2 {
+  margin: var(--section-gap) 0 var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 0.5px solid var(--rule);
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Role / project titles — date sits opposite via the single allowed flex row */
+h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin: var(--space-4) 0 var(--space-1);
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.005em;
+}
+
+/* Secondary text inside an h3 (org, and the right-aligned date span) */
+h3 .meta {
+  font-weight: var(--fw-normal);
+  color: var(--ink-soft);
+}
+h3 .date {
+  flex: none;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-normal);
+  color: var(--ink-soft);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+/* Summary / standalone paragraphs */
+p {
+  margin: 0 0 var(--space-3);
+  text-wrap: pretty;
+}
+
+/* Achievement bullets */
+ul {
+  margin: var(--space-2) 0 var(--space-4);
+  padding-left: var(--space-5);
+}
+li {
+  margin: 0 0 var(--bullet-gap);
+  padding-left: var(--space-1);
+  text-wrap: pretty;
+}
+li::marker {
+  color: var(--ink-soft);
+}
+
+/* Skills lines read cleanly as inline lists too */
+ul.inline {
+  margin: var(--space-2) 0 var(--space-3);
+  padding-left: 0;
+  list-style: none;
+}
+ul.inline li {
+  margin: 0 0 var(--space-1);
+  padding-left: 0;
+}
+ul.inline li .label {
+  font-weight: var(--fw-medium);
+}
+
+/* Links — real underlined text, no accent */
+a {
+  color: var(--link-color);
+  text-decoration: underline;
+  text-decoration-thickness: var(--link-underline-thickness);
+  text-underline-offset: var(--link-underline-offset);
+}
+a:hover {
+  text-decoration-thickness: 1px;
+}
+
+/* Print (added at migration — not part of the Claude Design bundle):
+   the sheet becomes the physical page; margins move to @page so they
+   hold on every printed page. */
+@media print {
+  body {
+    background: #fff;
+    padding: 0;
+  }
+  main {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  /* Never strand a heading at a page bottom, never split a bullet. */
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+  li {
+    break-inside: avoid;
+  }
+}
+@page {
+  size: A4;
+  margin: 16mm 22mm;
+}
