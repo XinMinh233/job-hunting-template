@@ -438,7 +438,7 @@ def stance_chip(p, commits):
     )
     cls = "chip seeded" if seeded else "chip"
     label = p["stance"].upper() + (
-        f" — seeded {p['seed_date']} by chief" if seeded and p["seed_date"] else ""
+        f" — seeded {p['seed_date']}" if seeded and p["seed_date"] else ""
     )
     return f'<span class="{cls}">{esc(label)}{esc(fuse)}</span>'
 
@@ -620,7 +620,7 @@ true linear is the honest ruler — same marks, real distances.</span></div>
 <div id="tip"></div>
 <footer>regenerate: uv run build_career_tree.py [--open] · opened at the monthly re-score
 and /crossroads · never writes back · rules live in data/career-map.yaml's header;
-why in data/career-map-design.md</footer>
+rules live in data/career-map.yaml's header</footer>
 <script>
 const tip = document.getElementById('tip');
 document.querySelectorAll('.hit,.gitsq,.rib').forEach(el => {{
