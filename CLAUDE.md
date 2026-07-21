@@ -67,6 +67,12 @@ JD (external) → /match → data/applications.csv → /tailor → /interview
   logged-JD corpus (does not exist until first derivation).
 - data/self-check.md — the user's weekly self-review questions, read
   by /review.
+- data/career-map.yaml — the life-path decision map (career-strategy
+  layer, one level above the hunt): one row per path, cited evidence +
+  dated falsifiable checkpoints, stance user-only. Written by hand or
+  by /crossroads on approval; re-scored ~10 min monthly (runbook in
+  README's career-strategy section). Operating rules live in the
+  file's own header — on any conflict, the header wins.
 - data/review_log.md — weekly digest log, append-only.
 - prompts/interviewer-voice.md — paste target for the optional
   claude.ai voice-interview Project.

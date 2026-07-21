@@ -99,6 +99,11 @@ Collect, conversationally (not as a checklist dump):
    each file they just built lives, and that they can always ask
    "what does X mean?" in plain words. Point them to README.md for
    the full rhythm. Do not dump the whole command reference on them.
+3. If the interview showed they're genuinely unsure what they should
+   do for money or career at all — not just which job to apply to —
+   point them to `/crossroads` (a separate, longer session that maps
+   the whole decision with evidence) as the right next step before
+   heavy applying.
 
 ## Edge cases
 
