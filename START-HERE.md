@@ -71,6 +71,34 @@ builds your personal files (they start as empty skeletons):
 - `data/scout-lanes.md` — 在你的市场里去哪儿找职位。
 - `base/` 里你的第一份基础简历。
 
+## 3b. Not sure what you even want? · 根本不知道自己想做什么？
+
+If your real question isn't "which job should I apply to" but "what
+should I do for money or career *at all*" — employed job, freelancing,
+building something, studying, moving abroad — run:
+
+```
+/crossroads
+```
+
+It's a longer session (1-2 hours): Claude lays out the candidate life
+paths, researches real-world evidence for each (including the failure
+stories people don't blog about), argues for and against every path,
+and writes the survivors into `data/career-map.yaml` as concrete,
+dated predictions you check monthly. **You make every decision — it
+never picks a path for you.** Run it after `/onboard`, in a fresh
+session, before heavy applying. It's completely optional: if you
+already know what you want, skip straight to the daily rhythm below.
+
+如果你真正的问题不是"该投哪个职位"，而是"我到底该靠什么谋生、走什么
+职业路"——上班、自由职业、做产品、继续读书、出国——就运行 `/crossroads`。
+这是一个较长的会话（1-2 小时）：Claude 会摊开候选人生路径，为每条路
+搜集真实世界的证据（包括没人写博客的失败案例），对每条路正反攻辩，
+把幸存的路径写进 `data/career-map.yaml`，变成具体、带日期、每月核对
+的预测。**每个决定都由你来做 —— 它绝不替你选路。** 在 `/onboard` 之后、
+大规模投递之前，在一个全新会话里跑它。它完全可选：如果你已经清楚自己
+想要什么，直接跳到下面的日常节奏即可。
+
 ## 4. The everyday rhythm · 日常节奏
 
 After onboarding, the daily loop is a handful of commands:
