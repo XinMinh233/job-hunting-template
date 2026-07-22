@@ -108,6 +108,7 @@ After onboarding, the daily loop is a handful of commands:
 | Morning | `/daily` | Reviews what changed, gives you 3 priorities for today |
 | Found a posting yourself? | `/match <paste the JD>` | Scores it against your rubric, logs it |
 | Ready to apply to one? | `/tailor <company>` | Writes a resume tailored to that posting |
+| Resume ready to send? | `/pdf` | Turns it into the one-page PDF you actually upload |
 | Once a day-ish | `/scout` | Claude searches the web for new postings in your lanes |
 | Weekly (pick a fixed morning) | `/review` | Weekly review: what worked, one course-correction |
 
@@ -119,8 +120,9 @@ part of its job.
 
 入门之后，日常就是三五个命令：早上 `/daily` 看变化、拿到今天的三个
 优先事项；自己看到职位就 `/match <粘贴JD>` 打分入库；决定投谁就
-`/tailor <公司>` 生成定制简历；每天跑一次 `/scout` 让 Claude 上网
-搜新职位；每周固定一个上午 `/review` 做周复盘。其余命令（模拟面试、
+`/tailor <公司>` 生成定制简历，再 `/pdf` 转成真正用来投递的一页 PDF；
+每天跑一次 `/scout` 让 Claude 上网搜新职位；每周固定一个上午
+`/review` 做周复盘。其余命令（模拟面试、
 简历审计、策略）见 README 的命令速查表，按自己的节奏慢慢用起来。任何
 地方看不懂，直接用大白话问 Claude："/match 是干什么的？" —— 解释这套
 系统本身就是它的职责。
