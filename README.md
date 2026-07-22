@@ -42,10 +42,11 @@ JD (found) → /match → data/applications.csv → /tailor → apply → /inter
    base, lint it, write the file pair, update the tracker.
 3. `/audit tailored/<file>.md` — truth/voice/structure pass; apply
    confirmed fixes to this (un-sent) version.
-4. `python3 build_resumes.py tailored/<file>.md --watch` — live HTML
-   preview with a page-count badge; trim per the notes file's
-   cut-first list. Then `--density compact --pdf` renders the real
-   PDF. Submit the `dist/*.pdf`.
+4. `/pdf` — builds the PDF via headless Chrome, reports the real page
+   count, and walks the one-page trim (notes file's cut-first list)
+   if it runs over. Submit the `dist/*.pdf` it names. (Power users:
+   `python3 build_resumes.py <file> --watch` is the live preview
+   underneath.)
 5. After sending: commit. The tailored file is now immutable history.
 6. `/scout` — after the apply block, not before it: sweeps your lanes
    for new postings, logs scoring JDs. Its results feed tomorrow's
@@ -115,6 +116,8 @@ evidence instead of vibes.
                         yours alone, written only at its Phase-4 gate
 - `/tailor <id>` ...... tailored resume pair into tailored/, lint, track
 - `/audit <file>` ..... 3-pass content audit (truth / voice / structure)
+- `/pdf [file]` ....... build the submission PDF, check the real page
+                        count, walk the one-page trim
 - `/interview <id>` ... text mock via interviewer agent; `sync` logs voice rows
 - `/review` ........... weekly digest + PM review
 - `/rubric-drift` ..... weights check vs the market (propose-only)

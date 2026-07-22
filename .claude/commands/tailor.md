@@ -166,7 +166,9 @@ delete rows; events.csv is append-only.
 
 **10 — Report.** In chat: base + reason, top gaps in at most two
 lines, verify-and-rerun items if any, the files written, lint status,
-and the tracker updates made.
+and the tracker updates made. Close by naming the next step
+explicitly: **run `/pdf` to turn this into the submission-ready PDF**
+— a beginner will not know the .md is not the thing they upload.
 
 ## Edge cases
 
