@@ -14,19 +14,22 @@ restic 自带加密和去重。脚本保留最近 7 个带 `jobhunt-daily` 标�
 
 ## 首次初始化和验证
 
-配置 `/etc/jobhunt/restic.env` 后：
+配置 `/etc/jobhunt/restic.env` 后。腾讯云 COS 上海地域应包含
+`AWS_DEFAULT_REGION=ap-shanghai` 和 `RESTIC_S3_BUCKET_LOOKUP=dns`；仓库地址使用
+`s3:https://cos.ap-shanghai.myqcloud.com/<BucketName-APPID>/jobhunt-restic`：
 
 ```bash
 set -a
 . /etc/jobhunt/restic.env
 set +a
-restic snapshots
+restic -o "s3.bucket-lookup=${RESTIC_S3_BUCKET_LOOKUP:-dns}" init
+restic -o "s3.bucket-lookup=${RESTIC_S3_BUCKET_LOOKUP:-dns}" snapshots
 systemctl start jobhunt-backup.service
 journalctl -u jobhunt-backup.service
-restic check
+restic -o "s3.bucket-lookup=${RESTIC_S3_BUCKET_LOOKUP:-dns}" check
 ```
 
-新建仓库第一次运行时先执行 `restic init`；已有仓库不要重复初始化。
+上面的 `restic init` 只在新建仓库时执行一次；已有仓库不要重复初始化。项目备份、生产检查和恢复脚本会自动读取相同的 bucket lookup 配置。
 
 备份密码与对象存储凭证不得放在仓库。至少保存一份离线的 restic 密码恢复材料；丢失密码等于永久丢失备份。
 

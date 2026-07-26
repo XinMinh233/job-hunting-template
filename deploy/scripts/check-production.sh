@@ -21,6 +21,9 @@ case "$RESTIC_REPOSITORY" in
   *example.com*|*请替换*) echo "restic 仍为示例配置" >&2; exit 1 ;;
 esac
 
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+. "$script_dir/restic-options.sh"
+
 systemctl is-active --quiet jobhunt-runner.service
 systemctl is-active --quiet jobhunt-web.service
 systemctl is-active --quiet jobhunt-backup.timer
@@ -36,7 +39,7 @@ internal_status="$(
 [[ "$internal_status" == "404" ]]
 
 latest_backup="$(
-  restic snapshots --tag jobhunt-daily --json |
+  restic "${RESTIC_BACKEND_OPTIONS[@]}" snapshots --tag jobhunt-daily --json |
     jq -r 'sort_by(.time) | last | .time // empty'
 )"
 if [[ -z "$latest_backup" ]]; then
@@ -52,4 +55,3 @@ if (( now_epoch - latest_epoch > 172800 )); then
 fi
 
 echo "生产门槛通过：服务、HTTPS 内部路由、核心配置和远程备份均有效"
-

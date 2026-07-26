@@ -69,8 +69,11 @@ socket 应为 `root:jobhunt-web 0660`，Web 服务用户必须属于 `jobhunt-we
 ```bash
 systemctl status jobhunt-backup.service
 journalctl -u jobhunt-backup.service
-restic snapshots
-restic check
+set -a
+. /etc/jobhunt/restic.env
+set +a
+restic -o "s3.bucket-lookup=${RESTIC_S3_BUCKET_LOOKUP:-dns}" snapshots
+restic -o "s3.bucket-lookup=${RESTIC_S3_BUCKET_LOOKUP:-dns}" check
 ```
 
 不要因为备份失败而删除本地数据腾空间。先修复远程凭证、容量或网络，再人工补跑；磁盘少于 2 GB 时健康检查会报警。
