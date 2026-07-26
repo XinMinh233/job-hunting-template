@@ -1,5 +1,16 @@
 dist/
+build/
 .DS_Store
 __pycache__/
+.pytest_cache/
+.venv/
+.runtime/
+*.egg-info/
+*.py[cod]
+*.sqlite3
+*.db
+.env
+.coverage
+htmlcov/
 .claude/settings.local.json
 .claude/worktrees/

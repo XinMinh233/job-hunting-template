@@ -136,13 +136,13 @@ absence.
 Then CHECK EVERY URL the resume claims — repos and live demos alike:
 
 ```
-grep -oE 'https?://[^ )]+' <resume file> | sort -u | \
-  while read u; do printf '%s  %s\n' "$(curl -s -o /dev/null -w '%{http_code}' "$u")" "$u"; done
+python3 check_links.py <resume file>
 ```
 
 Anything not 200 → fix the link or cut the entry, and correct
 master.md if the claim there is stale. A public link that 404s is
 worse than no link. Record the result in master.md's Verification Log.
+The checker refuses localhost, private-network, and link-local targets.
 
 KNOWN FALSE POSITIVE: linkedin.com returns **HTTP 999** to any
 non-browser request (their bot-block), never 200. That is NOT a broken

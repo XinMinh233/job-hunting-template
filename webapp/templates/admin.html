@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}系统管理 · {{ app_name }}{% endblock %}
+{% block body_class %}admin-page{% endblock %}
+{% block body %}
+<header class="admin-header">
+  <a href="/" class="brand inline"><span class="brand-mark small">JH</span><strong>系统管理</strong></a>
+  <nav><a href="/">返回工作台</a><button id="logout" class="link-button">退出</button></nav>
+</header>
+<main class="admin-main">
+  <section class="admin-hero">
+    <p class="eyebrow">SUPER ADMIN</p>
+    <h1>小规模，也要有清晰的边界。</h1>
+    <p>开通账号、调整额度、停止任务和升级模板。临时密码只会显示一次。</p>
+  </section>
+  <section class="metric-row">
+    <article><span>已开通账号</span><strong id="metric-users">—</strong></article>
+    <article><span>活跃账号</span><strong id="metric-active">—</strong></article>
+    <article><span>运行 / 排队</span><strong id="metric-jobs">—</strong></article>
+  </section>
+  <section class="admin-section">
+    <div class="section-heading"><div><p class="eyebrow">ACCOUNTS</p><h2>用户与额度</h2></div><button id="open-create" class="primary">开通用户</button></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>用户</th><th>状态</th><th>今日使用</th><th>每日额度</th><th>模板</th><th>操作</th></tr></thead>
+        <tbody id="users-table"></tbody>
+      </table>
+    </div>
+  </section>
+  <section class="admin-section">
+    <div class="section-heading"><div><p class="eyebrow">RECENT JOBS</p><h2>最近任务</h2></div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>任务</th><th>用户</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+        <tbody id="jobs-table"></tbody>
+      </table>
+    </div>
+  </section>
+  <section class="admin-section">
+    <div class="section-heading"><div><p class="eyebrow">AUDIT</p><h2>审计记录</h2></div></div>
+    <div id="audit-list" class="audit-list"></div>
+  </section>
+</main>
+
+<dialog id="create-dialog">
+  <form id="create-user-form" class="dialog-card">
+    <div><p class="eyebrow">NEW ACCOUNT</p><h2>开通用户</h2></div>
+    <label>用户名<input name="username" minlength="3" maxlength="32" required></label>
+    <label>每日任务数<input name="daily_job_limit" type="number" min="1" value="30" required></label>
+    <label>每日 Token<input name="daily_token_limit" type="number" min="10000" value="1000000" required></label>
+    <div class="dialog-actions"><button type="button" data-close>取消</button><button class="primary" type="submit">创建并配置空间</button></div>
+  </form>
+</dialog>
+<dialog id="secret-dialog">
+  <div class="dialog-card">
+    <div><p class="eyebrow">ONE-TIME SECRET</p><h2>临时密码</h2></div>
+    <p>请现在安全地交给用户。关闭后无法再次查看。</p>
+    <code id="temporary-password"></code>
+    <button class="primary" data-close>我已保存</button>
+  </div>
+</dialog>
+{% endblock %}
+{% block scripts %}<script src="/static/admin.js"></script>{% endblock %}
+

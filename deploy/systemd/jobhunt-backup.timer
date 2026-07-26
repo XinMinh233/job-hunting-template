@@ -1,0 +1,12 @@
+[Unit]
+Description=每天备份求职系统
+
+[Timer]
+OnCalendar=*-*-* 03:20:00
+RandomizedDelaySec=20m
+Persistent=true
+Unit=jobhunt-backup.service
+
+[Install]
+WantedBy=timers.target
+

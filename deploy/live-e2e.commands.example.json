@@ -1,0 +1,37 @@
+[
+  {
+    "name": "onboard",
+    "message": "/onboard\n这是专用测试账号。请使用虚构资料完成初始求职档案：候选人 Test User，目标岗位为 Python 后端工程师，有 5 年经验，熟悉 FastAPI、PostgreSQL、AWS，所在地为上海，可远程。",
+    "expect": ["master.md"],
+    "changed": ["master.md"]
+  },
+  {
+    "name": "continue",
+    "message": "继续完成初始化；测试账号只使用上述虚构资料。",
+    "expect": ["master.md", "base/*"],
+    "changed": ["base/*"]
+  },
+  {
+    "name": "match",
+    "message": "/match\nExample Corp 招聘 Senior Python Backend Engineer。要求 5 年 Python、FastAPI、PostgreSQL、AWS 经验；Remote China；负责 API 与可靠性；薪资未说明。",
+    "expect": ["data/applications.csv"],
+    "changed": ["data/applications.csv"]
+  },
+  {
+    "name": "tailor",
+    "message": "/tailor Example Corp",
+    "expect": ["tailored/*.md"],
+    "changed": ["tailored/*.md"]
+  },
+  {
+    "name": "pdf",
+    "message": "/pdf",
+    "expect": ["dist/*.pdf"],
+    "changed": ["dist/*.pdf"]
+  },
+  {
+    "name": "scout",
+    "message": "/scout 1",
+    "expect": ["data/applications.csv"]
+  }
+]

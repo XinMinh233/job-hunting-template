@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block body_class %}workspace-page{% endblock %}
+{% block body %}
+<div class="workspace">
+  <aside class="sidebar">
+    <header class="brand">
+      <div class="brand-mark small">JH</div>
+      <div><strong>求职工作台</strong><span>CLAUDE × DEEPSEEK</span></div>
+    </header>
+    <button id="new-chat" class="new-chat">＋ 新建会话</button>
+    <nav id="chat-list" class="chat-list" aria-label="会话列表"></nav>
+    <div class="sidebar-footer">
+      <div id="usage-card" class="usage-card">
+        <div><span>今日任务</span><strong id="job-usage">—</strong></div>
+        <div><span>Token</span><strong id="token-usage">—</strong></div>
+      </div>
+      <div class="user-row">
+        <span id="current-user">—</span>
+        <a id="admin-link" href="/admin" hidden>管理</a>
+        <button id="logout" class="link-button">退出</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="chat-panel">
+    <header class="topbar">
+      <button id="mobile-menu" class="icon-button" aria-label="打开会话列表">☰</button>
+      <div><h1 id="chat-title">开始一段求职工作</h1><p id="job-status">选择会话或新建会话</p></div>
+      <button id="stop-job" class="danger-ghost" hidden>停止任务</button>
+    </header>
+    <section id="messages" class="messages">
+      <div class="empty-state">
+        <p class="eyebrow">GET STARTED</p>
+        <h2>你今天想推进哪一件事？</h2>
+        <p>可以直接对话，也可以使用模板命令。</p>
+        <div class="prompt-grid">
+          <button data-prompt="/onboard">/onboard<br><span>建立个人求职档案</span></button>
+          <button data-prompt="/match "> /match<br><span>评估职位匹配度</span></button>
+          <button data-prompt="/tailor "> /tailor<br><span>定制简历与求职信</span></button>
+          <button data-prompt="/scout "> /scout<br><span>调查公司与职位</span></button>
+        </div>
+      </div>
+    </section>
+    <form id="composer" class="composer">
+      <textarea id="prompt" rows="1" maxlength="100000" placeholder="输入消息，Shift + Enter 换行…" disabled></textarea>
+      <div class="composer-actions">
+        <span>Enter 发送</span>
+        <button class="primary round" type="submit" disabled>发送</button>
+      </div>
+    </form>
+  </main>
+
+  <aside class="files-panel">
+    <header><div><p class="eyebrow">WORKSPACE</p><h2>文件与产物</h2></div></header>
+    <form id="upload-form" class="upload-zone">
+      <input id="file-input" type="file" name="upload" accept=".txt,.md,.csv,.json,.yaml,.yml,.pdf,.docx" hidden>
+      <button type="button" id="choose-file">上传资料</button>
+      <p>TXT / MD / PDF / DOCX 等，单文件 10 MB</p>
+    </form>
+    <div id="file-list" class="file-list"></div>
+  </aside>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/app.js"></script>{% endblock %}
+

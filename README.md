@@ -8,6 +8,12 @@ shared state and the memory.
 **New here? Read [START-HERE.md](START-HERE.md) first, then run
 `/onboard`.** This README is the reference for daily use afterwards.
 
+## 中文 Web 工作台（自托管）
+
+仓库现已包含一个面向 2–4 位受邀用户的 FastAPI Web 外壳。它保留本页描述的 Claude Code 工作流，同时提供中文登录、聊天、文件、额度和管理员界面；每位用户映射到独立、禁止登录的 Linux 系统用户。
+
+Web 版的架构、开发、部署、安全、备份和操作说明从 [`docs/web/README.md`](docs/web/README.md) 开始。目标生产环境是 Ubuntu/Debian + systemd + Caddy；本地开发 Runner 不能替代 Linux 隔离验收。
+
 > Provenance: this template was distilled from a real, heavily-used
 > hunt system (2026). The gates and habits baked into the commands —
 > the WIP gate, the primary-source gate, the freshness gate, the
@@ -128,6 +134,7 @@ evidence instead of vibes.
 - `build_career_tree.py` career decision timeline tree →
                         dist/career-tree.html (regenerate at the
                         re-score / crossroads; read-only)
+- `check_links.py` .... safe public-link checker used by `/tailor`
 
 ## Voice interview satellite (optional)
 

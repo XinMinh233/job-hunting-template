@@ -1,0 +1,35 @@
+[Unit]
+Description=求职系统 Web 服务
+After=network-online.target jobhunt-runner.service
+Wants=network-online.target
+Requires=jobhunt-runner.service
+
+[Service]
+Type=simple
+User=jobhunt-web
+Group=jobhunt-web
+WorkingDirectory=/opt/jobhunt/app
+EnvironmentFile=/etc/jobhunt/web.env
+ExecStartPre=/opt/jobhunt/venv/bin/alembic upgrade head
+ExecStart=/opt/jobhunt/venv/bin/uvicorn webapp.main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips 127.0.0.1
+Restart=on-failure
+RestartSec=3
+UMask=0077
+MemoryMax=1G
+TasksMax=256
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+ReadWritePaths=/var/lib/jobhunt/app /var/lib/jobhunt-staging
+ReadOnlyPaths=/opt/jobhunt/app
+
+[Install]
+WantedBy=multi-user.target

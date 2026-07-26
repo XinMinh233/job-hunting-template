@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}登录 · {{ app_name }}{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block body %}
+<main class="auth-shell">
+  <section class="auth-intro">
+    <div class="brand-mark">JH</div>
+    <p class="eyebrow">PRIVATE CAREER WORKSPACE</p>
+    <h1>把求职材料，<br>变成一套可持续的工作流。</h1>
+    <p>为受邀用户提供独立项目空间、Claude 会话和求职模板。你的文件与其他用户完全隔离。</p>
+  </section>
+  <section class="auth-card">
+    <div>
+      <p class="eyebrow">受邀用户入口</p>
+      <h2>登录工作台</h2>
+      <p class="muted">没有公开注册。请使用管理员提供的账号。</p>
+    </div>
+    <form id="login-form" class="stack">
+      <label>用户名<input name="username" autocomplete="username" required minlength="3"></label>
+      <label>密码<input name="password" type="password" autocomplete="current-password" required></label>
+      <p id="login-error" class="form-error" hidden></p>
+      <button class="primary" type="submit">进入工作台</button>
+    </form>
+  </section>
+</main>
+{% endblock %}
+{% block scripts %}<script src="/static/auth.js"></script>{% endblock %}
+

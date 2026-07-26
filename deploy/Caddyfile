@@ -1,0 +1,26 @@
+{$JOBHUNT_DOMAIN} {
+	encode zstd gzip
+
+	@internal path /internal/*
+	respond @internal 404
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
+	reverse_proxy 127.0.0.1:8000 {
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto https
+		flush_interval -1
+	}
+
+	log {
+		output file /var/log/caddy/jobhunt-access.log {
+			roll_size 20MiB
+			roll_keep 5
+		}
+		format json
+	}
+}
+
