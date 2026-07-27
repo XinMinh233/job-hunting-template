@@ -162,7 +162,14 @@ async function archiveChat(chat) {
     toast("运行中的会话不能删除");
     return;
   }
-  if (!confirm(`删除会话“${chat.title}”？`)) return;
+  const confirmed = await window.JobHuntDialog.ask({
+    eyebrow: "DELETE CHAT",
+    title: "删除这段会话？",
+    message: `会话“${chat.title}”将从列表中移除，已经生成的文件不会删除。`,
+    confirmLabel: "删除会话",
+    danger: true,
+  });
+  if (!confirmed) return;
   try {
     await api(`/api/chats/${chat.id}/archive`, {method: "POST"});
     if (chat.id === currentChat) showNewChatState({focus: true});

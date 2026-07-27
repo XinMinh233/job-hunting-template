@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -79,3 +80,39 @@ def test_file_actions_only_offer_preview_for_supported_types():
     assert "txt" not in preview_logic
     assert "csv" not in preview_logic
     assert "docx" not in preview_logic
+
+
+def test_native_browser_prompts_are_replaced_with_site_dialogs():
+    with TestClient(app) as client:
+        workspace = client.get("/")
+        admin = client.get("/admin")
+    dialog_script = (ROOT / "webapp/static/dialogs.js").read_text()
+    application_scripts = "\n".join(
+        path.read_text()
+        for path in (ROOT / "webapp/static").glob("*.js")
+        if path.name != "dialogs.js"
+    )
+
+    assert workspace.status_code == 200
+    assert admin.status_code == 200
+    assert '<script src="/static/dialogs.js"></script>' in workspace.text
+    assert '<script src="/static/dialogs.js"></script>' in admin.text
+    assert "dialog.showModal()" in dialog_script
+    assert "window.JobHuntDialog = {ask, collect}" in dialog_script
+    assert not re.search(
+        r"(?<![.\w])(alert|confirm|prompt)\s*\(",
+        application_scripts,
+    )
+
+
+def test_create_user_form_keeps_reference_across_async_request():
+    script = (ROOT / "webapp/static/admin.js").read_text()
+    create_handler = script.split(
+        '$("#create-user-form").addEventListener("submit"',
+        1,
+    )[1].split('$("#logout")', 1)[0]
+
+    assert "const form = event.currentTarget;" in create_handler
+    assert "form.reset();" in create_handler
+    assert "event.currentTarget.reset()" not in create_handler
+    assert "用户已创建，但列表刷新失败" in create_handler

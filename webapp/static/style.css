@@ -180,9 +180,13 @@ dialog { width: min(30rem, calc(100% - 2rem)); padding: 0; border: 0; border-rad
 dialog::backdrop { background: rgba(13,23,44,.6); backdrop-filter: blur(3px); }
 .dialog-card { display: grid; gap: 1rem; padding: 2rem; background: var(--white); }
 .dialog-card h2 { margin: 0; font: 500 1.8rem/1.1 Georgia, serif; }
+.dialog-message { margin: 0; color: var(--muted); line-height: 1.7; }
+.dialog-fields { display: grid; gap: 1rem; }
 .dialog-card code { display: block; padding: 1rem; border-radius: .5rem; background: var(--ink); color: white; overflow-wrap: anywhere; }
 .dialog-actions { display: flex; justify-content: end; gap: .7rem; margin-top: .5rem; }
 .dialog-actions > button:not(.primary), .dialog-card > button:not(.primary) { border: 1px solid var(--line); border-radius: .6rem; padding: .7rem 1rem; background: white; }
+.danger-button { background: var(--danger); }
+.danger-button:hover { background: #843131; }
 
 @media (max-width: 1100px) {
   .workspace { grid-template-columns: 16rem minmax(0,1fr); }

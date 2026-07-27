@@ -41,9 +41,14 @@ async function loadAll() {
 
 function button(label, handler, className = "") {
   const node = document.createElement("button");
+  node.type = "button";
   node.textContent = label;
   node.className = className;
-  node.addEventListener("click", handler);
+  node.addEventListener("click", () => {
+    Promise.resolve()
+      .then(handler)
+      .catch((error) => toast(error.message || "操作失败"));
+  });
   return node;
 }
 
@@ -113,24 +118,65 @@ function renderAudit(items) {
 }
 
 async function editQuota(user) {
-  const jobs = prompt("每日任务额度", user.daily_job_limit);
-  if (jobs === null) return;
-  const tokens = prompt("每日 Token 额度", user.daily_token_limit);
-  if (tokens === null) return;
-  await api(`/api/admin/users/${user.id}/quota`, {method: "PUT", body: JSON.stringify({daily_job_limit: Number(jobs), daily_token_limit: Number(tokens)})});
+  const values = await window.JobHuntDialog.collect({
+    eyebrow: "EDIT QUOTA",
+    title: `调整 ${user.username} 的额度`,
+    message: "新额度会立即应用，不会清空用户今天已经产生的用量。",
+    confirmLabel: "保存额度",
+    fields: [
+      {
+        name: "daily_job_limit",
+        label: "每日任务数",
+        type: "number",
+        min: 1,
+        value: user.daily_job_limit,
+      },
+      {
+        name: "daily_token_limit",
+        label: "每日 Token",
+        type: "number",
+        min: 10000,
+        value: user.daily_token_limit,
+      },
+    ],
+  });
+  if (!values) return;
+  await api(`/api/admin/users/${user.id}/quota`, {
+    method: "PUT",
+    body: JSON.stringify({
+      daily_job_limit: Number(values.daily_job_limit),
+      daily_token_limit: Number(values.daily_token_limit),
+    }),
+  });
   await loadAll();
+  toast("额度已更新");
 }
 
 async function resetPassword(user) {
-  if (!confirm(`重置 ${user.username} 的密码并强制首次修改？`)) return;
+  const confirmed = await window.JobHuntDialog.ask({
+    eyebrow: "RESET PASSWORD",
+    title: `重置 ${user.username} 的密码？`,
+    message: "现有登录会话将失效，新临时密码只显示一次；用户下次登录必须修改密码。",
+    confirmLabel: "重置密码",
+    danger: true,
+  });
+  if (!confirmed) return;
   const result = await api(`/api/admin/users/${user.id}/reset-password`, {method: "POST", body: JSON.stringify({force_change: true})});
   showSecret(result.temporary_password);
 }
 
 async function disableUser(user) {
-  if (!confirm(`停用 ${user.username} 并停止其运行任务？`)) return;
+  const confirmed = await window.JobHuntDialog.ask({
+    eyebrow: "DISABLE ACCOUNT",
+    title: `停用 ${user.username}？`,
+    message: "用户将无法继续登录，当前正在运行或排队的任务也会停止。",
+    confirmLabel: "停用用户",
+    danger: true,
+  });
+  if (!confirmed) return;
   await api(`/api/admin/users/${user.id}/disable`, {method: "POST"});
   await loadAll();
+  toast("用户已停用");
 }
 
 async function enableUser(user) {
@@ -139,7 +185,13 @@ async function enableUser(user) {
 }
 
 async function upgrade(user) {
-  if (!confirm(`升级 ${user.username} 的模板？工作区必须干净，个人文件不会被覆盖。`)) return;
+  const confirmed = await window.JobHuntDialog.ask({
+    eyebrow: "UPGRADE TEMPLATE",
+    title: `升级 ${user.username} 的模板？`,
+    message: "工作区必须保持干净。个人文件不会被覆盖，有冲突的模板文件将跳过并生成报告。",
+    confirmLabel: "开始升级",
+  });
+  if (!confirmed) return;
   const result = await api(`/api/admin/users/${user.id}/upgrade-template`, {method: "POST"});
   toast(result.conflicts?.length ? `升级完成，跳过 ${result.conflicts.length} 个冲突文件` : "模板升级完成");
   await loadAll();
@@ -154,17 +206,31 @@ $("#open-create").addEventListener("click", () => $("#create-dialog").showModal(
 $$("[data-close]").forEach((node) => node.addEventListener("click", () => node.closest("dialog").close()));
 $("#create-user-form").addEventListener("submit", async (event) => {
   event.preventDefault();
-  const values = Object.fromEntries(new FormData(event.currentTarget));
+  const form = event.currentTarget;
+  const submit = form.querySelector('button[type="submit"]');
+  const values = Object.fromEntries(new FormData(form));
+  submit.disabled = true;
+  let result;
   try {
-    const result = await api("/api/admin/users", {
+    result = await api("/api/admin/users", {
       method: "POST",
       body: JSON.stringify({username: values.username, daily_job_limit: Number(values.daily_job_limit), daily_token_limit: Number(values.daily_token_limit)}),
     });
-    $("#create-dialog").close();
-    event.currentTarget.reset();
-    showSecret(result.temporary_password);
+  } catch (exc) {
+    toast(exc.message);
+    submit.disabled = false;
+    return;
+  }
+
+  $("#create-dialog").close();
+  form.reset();
+  submit.disabled = false;
+  showSecret(result.temporary_password);
+  try {
     await loadAll();
-  } catch (exc) { toast(exc.message); }
+  } catch (exc) {
+    toast(`用户已创建，但列表刷新失败：${exc.message}`);
+  }
 });
 $("#logout").addEventListener("click", async () => {
   await api("/api/auth/logout", {method: "POST"});
