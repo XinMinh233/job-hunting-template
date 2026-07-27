@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Markdown 预览 · {{ app_name }}{% endblock %}
+{% block body_class %}preview-page{% endblock %}
+{% block body %}
+<main class="preview-shell">
+  <header class="preview-header">
+    <div>
+      <p class="eyebrow">MARKDOWN PREVIEW</p>
+      <h1 id="preview-title">正在加载…</h1>
+    </div>
+    <nav>
+      <a href="/">返回工作台</a>
+      <a id="preview-download" class="primary" href="#">下载原文件</a>
+    </nav>
+  </header>
+  <article id="markdown-preview" class="markdown-body preview-content" aria-live="polite">
+    <p class="muted">正在读取文件…</p>
+  </article>
+</main>
+{% endblock %}
+{% block scripts %}
+<script src="/static/markdown.js"></script>
+<script src="/static/preview.js"></script>
+{% endblock %}

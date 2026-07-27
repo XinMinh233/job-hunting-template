@@ -53,6 +53,38 @@ function showNewChatState({clearPrompt = true, focus = false} = {}) {
   if (focus) $("#prompt").focus();
 }
 
+function messagesNearBottom() {
+  const messages = $("#messages");
+  return messages.scrollHeight - messages.scrollTop - messages.clientHeight < 120;
+}
+
+function scrollMessagesToBottom() {
+  const messages = $("#messages");
+  requestAnimationFrame(() => {
+    messages.scrollTop = messages.scrollHeight;
+  });
+}
+
+function renderAssistantContent(body, content, defer = false) {
+  body._markdownSource = content;
+  if (!defer) {
+    if (body._markdownFrame) cancelAnimationFrame(body._markdownFrame);
+    body._markdownFrame = null;
+    window.JobHuntMarkdown.render(body, content);
+    return;
+  }
+
+  body._followMessages = body._followMessages || messagesNearBottom();
+  if (body._markdownFrame) return;
+  body._markdownFrame = requestAnimationFrame(() => {
+    const follow = body._followMessages;
+    body._markdownFrame = null;
+    body._followMessages = false;
+    window.JobHuntMarkdown.render(body, body._markdownSource);
+    if (follow) scrollMessagesToBottom();
+  });
+}
+
 function addMessage(role, content, pending = false) {
   $(".empty-state")?.remove();
   const article = document.createElement("article");
@@ -61,10 +93,14 @@ function addMessage(role, content, pending = false) {
   label.textContent = role === "user" ? "你" : "Claude";
   const body = document.createElement("div");
   body.className = "message-body";
-  body.textContent = content;
+  if (role === "assistant" && !pending) {
+    renderAssistantContent(body, content);
+  } else {
+    body.textContent = content;
+  }
   article.append(label, body);
   $("#messages").append(article);
-  $("#messages").scrollTop = $("#messages").scrollHeight;
+  scrollMessagesToBottom();
   return body;
 }
 
@@ -214,7 +250,7 @@ function streamJob(jobId, body) {
       } else if (type === "text_delta") {
         if (!text) body.textContent = "";
         text += data.text || "";
-        body.textContent = text;
+        renderAssistantContent(body, text, true);
         body.parentElement.classList.remove("pending");
       } else if (type === "tool") {
         $("#job-status").textContent = data.message || "正在使用工具";
@@ -223,8 +259,15 @@ function streamJob(jobId, body) {
         await loadFiles();
       } else if (type === "done" || type === "error") {
         if (type === "error") {
-          body.textContent = text || data.message || "任务失败";
+          if (text) {
+            renderAssistantContent(body, text);
+          } else {
+            body.classList.remove("markdown-body");
+            body.textContent = data.message || "任务失败";
+          }
           body.parentElement.classList.add("error");
+        } else if (text) {
+          renderAssistantContent(body, text);
         }
         body.parentElement.classList.remove("pending");
         eventSource.close();
@@ -252,6 +295,17 @@ function fileIcon(name) {
   return suffix.length <= 5 ? suffix : "FILE";
 }
 
+function filePreviewUrl(path) {
+  const suffix = path.includes(".") ? path.split(".").pop().toLowerCase() : "";
+  if (["md", "markdown"].includes(suffix)) {
+    return `/files/preview?path=${encodeURIComponent(path)}`;
+  }
+  if (["pdf", "html", "htm"].includes(suffix)) {
+    return `/api/files/download?inline=true&path=${encodeURIComponent(path)}`;
+  }
+  return null;
+}
+
 async function loadFiles() {
   const files = await api("/api/files");
   const list = $("#file-list");
@@ -264,11 +318,31 @@ async function loadFiles() {
     const row = document.createElement("article");
     const path = typeof file === "string" ? file : file.relative_path;
     const size = typeof file === "string" ? "" : file.size;
-    row.innerHTML = `<span class="file-icon">${fileIcon(path)}</span><div><strong></strong><small>${size ? `${Math.ceil(size / 1024)} KB` : ""}</small></div><div class="file-actions"><a target="_blank">预览</a><a>下载</a></div>`;
-    $("strong", row).textContent = path.split("/").pop();
-    const links = $$("a", row);
-    links[0].href = `/api/files/download?inline=true&path=${encodeURIComponent(path)}`;
-    links[1].href = `/api/files/download?path=${encodeURIComponent(path)}`;
+    const icon = document.createElement("span");
+    icon.className = "file-icon";
+    icon.textContent = fileIcon(path);
+    const metadata = document.createElement("div");
+    const name = document.createElement("strong");
+    name.textContent = path.split("/").pop();
+    const fileSize = document.createElement("small");
+    fileSize.textContent = size ? `${Math.ceil(size / 1024)} KB` : "";
+    metadata.append(name, fileSize);
+    const actions = document.createElement("div");
+    actions.className = "file-actions";
+    const previewUrl = filePreviewUrl(path);
+    if (previewUrl) {
+      const preview = document.createElement("a");
+      preview.href = previewUrl;
+      preview.target = "_blank";
+      preview.rel = "noopener noreferrer";
+      preview.textContent = "预览";
+      actions.append(preview);
+    }
+    const download = document.createElement("a");
+    download.href = `/api/files/download?path=${encodeURIComponent(path)}`;
+    download.textContent = "下载";
+    actions.append(download);
+    row.append(icon, metadata, actions);
     list.append(row);
   }
 }

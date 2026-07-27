@@ -169,3 +169,76 @@ def test_successful_upload_is_readonly_and_committed(monkeypatch, tmp_path: Path
         text=True,
     )
     assert status.stdout == ""
+
+
+def test_markdown_preview_is_authenticated_owned_and_size_limited(monkeypatch):
+    content = b"# Preview\n\n<script>alert('unsafe')</script>\n"
+
+    async def fake_request(operation: str, **_payload):
+        assert operation == "file_list"
+        return {
+            "files": [
+                {
+                    "relative_path": "dist/result.md",
+                    "size": len(content),
+                    "mime_type": "text/markdown",
+                }
+            ]
+        }
+
+    async def fake_read_file(_user_id: str, relative_path: str):
+        assert relative_path == "dist/result.md"
+        yield content
+
+    monkeypatch.setattr(files_module.runner_client, "request", fake_request)
+    monkeypatch.setattr(files_module.runner_client, "read_file", fake_read_file)
+
+    with TestClient(app) as client:
+        assert (
+            client.get("/api/files/preview?path=dist/result.md").status_code
+            == 401
+        )
+        create_and_login(client, "preview.user")
+        preview = client.get("/api/files/preview?path=dist/result.md")
+        missing = client.get("/api/files/preview?path=dist/missing.md")
+        unsupported = client.get("/api/files/preview?path=dist/result.txt")
+
+    assert preview.status_code == 200
+    assert preview.json() == {
+        "relative_path": "dist/result.md",
+        "content": content.decode(),
+    }
+    assert preview.headers["cache-control"] == "no-store"
+    assert missing.status_code == 404
+    assert unsupported.status_code == 415
+
+
+def test_markdown_preview_rejects_large_file_before_reading(monkeypatch):
+    async def fake_request(operation: str, **_payload):
+        assert operation == "file_list"
+        return {
+            "files": [
+                {
+                    "relative_path": "dist/large.md",
+                    "size": files_module.MAX_MARKDOWN_PREVIEW_BYTES + 1,
+                }
+            ]
+        }
+
+    async def unexpected_read_file(_user_id: str, _relative_path: str):
+        raise AssertionError("超限文件不应进入读取阶段")
+        yield b""
+
+    monkeypatch.setattr(files_module.runner_client, "request", fake_request)
+    monkeypatch.setattr(
+        files_module.runner_client,
+        "read_file",
+        unexpected_read_file,
+    )
+
+    with TestClient(app) as client:
+        create_and_login(client, "preview.large")
+        response = client.get("/api/files/preview?path=dist/large.md")
+
+    assert response.status_code == 413
+    assert "2 MB" in response.json()["detail"]

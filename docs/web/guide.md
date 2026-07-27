@@ -47,7 +47,7 @@
 
 上传会作为一个独立 Git 提交保存，因此任务运行或排队期间不能同时上传；请等待任务结束。上传原文件和提取文本都由 root 设为只读，Claude 不会覆盖原始资料。
 
-“文件与产物”只显示 `master.md`、`base/`、`tailored/`、`dist/`、`data/`、`uploads/`。HTML/PDF 可在认证后预览，其他类型下载。
+“文件与产物”只显示 `master.md`、`base/`、`tailored/`、`dist/`、`data/`、`uploads/`。Markdown 使用站内安全渲染页面预览（单文件上限 2 MB），HTML/PDF 使用浏览器预览；其他类型只提供下载。
 
 ### 常用命令
 

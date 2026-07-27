@@ -43,3 +43,39 @@ def test_admin_jobs_surface_sanitized_failure_reason():
     assert response.status_code == 200
     assert "<th>失败原因</th>" in response.text
     assert 'job.error || "—"' in script
+
+
+def test_workspace_loads_safe_markdown_renderer_and_scroll_constraints():
+    with TestClient(app) as client:
+        response = client.get("/")
+        preview = client.get("/files/preview")
+    script = (ROOT / "webapp/static/app.js").read_text()
+    renderer = (ROOT / "webapp/static/markdown.js").read_text()
+    styles = (ROOT / "webapp/static/style.css").read_text()
+
+    assert response.status_code == 200
+    assert '<script src="/static/markdown.js"></script>' in response.text
+    assert response.text.index("/static/markdown.js") < response.text.index(
+        "/static/app.js"
+    )
+    assert preview.status_code == 200
+    assert 'id="markdown-preview"' in preview.text
+    assert "window.JobHuntMarkdown.render" in script
+    assert "document.createElement" in renderer
+    assert ".innerHTML" not in renderer
+    assert '"javascript:"' not in renderer
+    assert "grid-template-rows: auto minmax(0, 1fr) auto" in styles
+    assert ".messages { min-height: 0; overflow-y: auto" in styles
+
+
+def test_file_actions_only_offer_preview_for_supported_types():
+    script = (ROOT / "webapp/static/app.js").read_text()
+    preview_logic = script.split("function filePreviewUrl(path)", 1)[1].split(
+        "async function loadFiles", 1
+    )[0]
+
+    assert '["md", "markdown"]' in preview_logic
+    assert '["pdf", "html", "htm"]' in preview_logic
+    assert "txt" not in preview_logic
+    assert "csv" not in preview_logic
+    assert "docx" not in preview_logic

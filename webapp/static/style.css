@@ -45,8 +45,9 @@ input, textarea { width: 100%; border: 1px solid var(--line); border-radius: .65
 input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(217,148,69,.15); }
 .form-error { margin: 0; color: var(--danger); font-size: .88rem; }
 
-.workspace-page { height: 100vh; overflow: hidden; }
-.workspace { height: 100vh; display: grid; grid-template-columns: 17rem minmax(25rem, 1fr) 19rem; background: var(--white); }
+.workspace-page { height: 100vh; height: 100dvh; overflow: hidden; }
+.workspace { height: 100vh; height: 100dvh; min-height: 0; display: grid; grid-template-columns: 17rem minmax(25rem, 1fr) 19rem; background: var(--white); }
+.workspace > * { min-height: 0; }
 .sidebar { min-width: 0; display: flex; flex-direction: column; padding: 1.25rem; background: var(--ink); color: #e9edf6; }
 .brand { display: flex; align-items: center; gap: .75rem; }
 .brand div:last-child { display: grid; gap: .2rem; }
@@ -68,14 +69,14 @@ input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px
 .usage-card strong { color: white; }
 .user-row { display: flex; gap: .8rem; align-items: center; margin-top: 1rem; color: #9eabc0; font-size: .78rem; }
 .user-row span { margin-right: auto; color: white; }
-.chat-panel { min-width: 0; display: grid; grid-template-rows: auto 1fr auto; background: #faf9f6; }
+.chat-panel { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; background: #faf9f6; }
 .topbar { min-height: 5.25rem; display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border-bottom: 1px solid var(--line); background: rgba(255,253,249,.92); }
 .topbar h1 { margin: 0; font-size: 1rem; }
 .topbar p { margin: .25rem 0 0; color: var(--muted); font-size: .72rem; }
 .topbar > div { flex: 1; }
 .icon-button { display: none; border: 0; background: none; font-size: 1.25rem; }
 .danger-ghost { padding: .55rem .8rem; border: 1px solid #d5aaaa; border-radius: .5rem; background: #fff8f7; color: var(--danger); }
-.messages { overflow-y: auto; padding: clamp(1.5rem, 5vw, 4.5rem) max(1.5rem, calc((100% - 48rem) / 2)); scroll-behavior: smooth; }
+.messages { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: clamp(1.5rem, 5vw, 4.5rem) max(1.5rem, calc((100% - 48rem) / 2)); scroll-behavior: smooth; }
 .empty-state { margin: 6vh auto; max-width: 42rem; text-align: center; }
 .empty-state h2 { margin: .5rem 0; font: 500 clamp(2rem, 4vw, 3.3rem)/1.15 Georgia, "Songti SC", serif; }
 .empty-state > p:not(.eyebrow) { color: var(--muted); }
@@ -88,6 +89,7 @@ input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px
 .message > span { padding-top: .15rem; color: var(--muted); font-size: .72rem; font-weight: 700; text-transform: uppercase; }
 .message-body { min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .message.user .message-body { font-weight: 580; }
+.message-body.markdown-body { white-space: normal; }
 .message.pending .message-body { color: var(--muted); }
 .message.error .message-body { color: var(--danger); }
 .composer { margin: 0 auto 1.5rem; width: min(calc(100% - 3rem), 50rem); border: 1px solid var(--line); border-radius: 1rem; background: white; box-shadow: 0 10px 35px rgba(20,33,61,.08); overflow: hidden; }
@@ -108,6 +110,37 @@ input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px
 .file-list small { color: var(--muted); font-size: .65rem; }
 .file-actions { grid-column: 2; display: flex; gap: .6rem; font-size: .68rem; color: var(--muted); }
 .empty-files { padding: 1rem; font-size: .75rem; }
+
+.markdown-body { min-width: 0; color: var(--ink); line-height: 1.75; overflow-wrap: anywhere; }
+.markdown-body > :first-child { margin-top: 0; }
+.markdown-body > :last-child { margin-bottom: 0; }
+.markdown-body p { margin: .75rem 0; }
+.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6 { margin: 1.65rem 0 .65rem; color: var(--ink); line-height: 1.3; }
+.markdown-body h1 { font-size: 1.7rem; }
+.markdown-body h2 { padding-bottom: .35rem; border-bottom: 1px solid var(--line); font-size: 1.4rem; }
+.markdown-body h3 { font-size: 1.15rem; }
+.markdown-body h4, .markdown-body h5, .markdown-body h6 { font-size: 1rem; }
+.markdown-body ul, .markdown-body ol { margin: .75rem 0; padding-left: 1.6rem; }
+.markdown-body li + li { margin-top: .25rem; }
+.markdown-body blockquote { margin: 1rem 0; padding: .1rem 1rem; border-left: .25rem solid var(--accent); color: var(--muted); background: rgba(217,148,69,.07); }
+.markdown-body code { padding: .12rem .35rem; border-radius: .3rem; background: #ece8e0; color: #8d3541; font: .88em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.markdown-body pre { max-width: 100%; margin: 1rem 0; padding: 1rem; border-radius: .7rem; overflow: auto; background: #17233d; color: #eef2fa; }
+.markdown-body pre code { padding: 0; background: transparent; color: inherit; white-space: pre; }
+.markdown-body a { color: #315f9f; text-decoration-thickness: .08em; text-underline-offset: .16em; }
+.markdown-body hr { margin: 1.5rem 0; border: 0; border-top: 1px solid var(--line); }
+.markdown-table-wrap { max-width: 100%; margin: 1rem 0; overflow-x: auto; }
+.markdown-body table { min-width: 24rem; background: var(--white); }
+.markdown-body th, .markdown-body td { padding: .6rem .75rem; }
+
+.preview-page { min-height: 100vh; background: var(--paper); }
+.preview-shell { width: min(58rem, calc(100% - 2rem)); margin: 0 auto; padding: 3rem 0 6rem; }
+.preview-header { display: flex; align-items: center; justify-content: space-between; gap: 2rem; margin-bottom: 1.5rem; }
+.preview-header h1 { margin: 0; font: 500 clamp(1.6rem, 4vw, 2.5rem)/1.2 Georgia, "Songti SC", serif; overflow-wrap: anywhere; }
+.preview-header nav { display: flex; align-items: center; gap: 1rem; flex: none; font-size: .8rem; }
+.preview-header nav a { text-decoration: none; }
+.preview-header .primary { padding: .65rem 1rem; }
+.preview-content { min-height: 18rem; padding: clamp(1.5rem, 5vw, 3.5rem); border: 1px solid var(--line); border-radius: 1rem; background: var(--white); box-shadow: var(--shadow); }
+.preview-error { padding: 2rem; border: 1px solid #d5aaaa; border-radius: .8rem; background: #fff8f7; color: var(--danger); }
 
 .admin-page { min-height: 100vh; background: var(--paper); }
 .admin-header { height: 4.75rem; display: flex; justify-content: space-between; align-items: center; padding: 0 max(1.25rem, 5vw); border-bottom: 1px solid var(--line); background: var(--white); }
@@ -178,4 +211,6 @@ dialog::backdrop { background: rgba(13,23,44,.6); backdrop-filter: blur(3px); }
   .admin-header .brand strong { display: none; }
   .audit-list article { grid-template-columns: 1rem 1fr; }
   .audit-list time { grid-column: 2; }
+  .preview-shell { padding-top: 1.5rem; }
+  .preview-header { align-items: flex-start; flex-direction: column; }
 }

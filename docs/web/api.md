@@ -49,6 +49,7 @@ SSE 每个数据帧的 `data` 是统一信封：
 - `GET /api/files`：Runner 在白名单根目录中列出的文件。
 - `POST /api/files/upload`：multipart 字段 `upload`。
 - `GET /api/files/download?path=...&inline=true`：认证下载或预览。
+- `GET /api/files/preview?path=...`：读取不超过 2 MB 的 UTF-8 Markdown，供站内安全预览页渲染。
 
 允许根目录仅为 `master.md`、`base/`、`tailored/`、`dist/`、`data/` 和 `uploads/`。上传原文件与 PDF/DOCX 提取文本都进入随机 UUID 子目录。
 
@@ -71,4 +72,3 @@ SSE 每个数据帧的 `data` 是统一信封：
 Unix socket 每次连接处理一个换行结尾的 JSON 请求。外部调用者不能提供 Linux 用户名、路径、环境变量或任意命令。
 
 核心动作：`provision`、`enable`、`disable`、`run`、`stop`、`upgrade`、`health`。由于 Web 服务不能读取 `0700` workspace，另有固定的 `file_list`、`file_import`、`file_read`；三者都强制内部 UUID、白名单路径和符号链接检查，不接受 shell 字符串。
-

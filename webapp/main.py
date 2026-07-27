@@ -99,6 +99,11 @@ def workspace_page(request: Request):
     return _page("app.html", request)
 
 
+@app.get("/files/preview", response_class=HTMLResponse)
+def markdown_preview_page(request: Request):
+    return _page("preview.html", request)
+
+
 @app.get("/healthz")
 async def health():
     checks: dict[str, dict] = {}

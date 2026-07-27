@@ -9,7 +9,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -28,6 +28,8 @@ from .runner_protocol import safe_filename, safe_relative_path
 
 router = APIRouter(prefix="/api/files", tags=["files"])
 ALLOWED_SUFFIXES = {".txt", ".md", ".csv", ".json", ".yaml", ".yml", ".pdf", ".docx"}
+MARKDOWN_SUFFIXES = {".md", ".markdown"}
+MAX_MARKDOWN_PREVIEW_BYTES = 2 * 1024 * 1024
 
 
 async def _save_staging(
@@ -250,6 +252,16 @@ async def download_file(
         headers["Content-Security-Policy"] = (
             "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:"
         )
+    metadata = await _owned_file_metadata(principal, relative)
+    mime = metadata.get("mime_type") or mime
+    stream = runner_client.read_file(principal.user.id, relative)
+    return StreamingResponse(stream, media_type=mime, headers=headers)
+
+
+async def _owned_file_metadata(
+    principal: Principal,
+    relative: str,
+) -> dict:
     try:
         listed = await runner_client.request(
             "file_list", user_id=principal.user.id
@@ -266,6 +278,53 @@ async def download_file(
     )
     if not metadata:
         raise HTTPException(status_code=404, detail="文件不存在")
-    mime = metadata.get("mime_type") or mime
-    stream = runner_client.read_file(principal.user.id, relative)
-    return StreamingResponse(stream, media_type=mime, headers=headers)
+    return metadata
+
+
+@router.get("/preview")
+async def preview_markdown_file(
+    path: str = Query(..., max_length=500),
+    principal: Principal = Depends(get_ready_principal),
+):
+    try:
+        relative = safe_relative_path(path)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if Path(relative).suffix.lower() not in MARKDOWN_SUFFIXES:
+        raise HTTPException(
+            status_code=415,
+            detail="该文件类型不支持在线预览",
+        )
+
+    metadata = await _owned_file_metadata(principal, relative)
+    if int(metadata.get("size") or 0) > MAX_MARKDOWN_PREVIEW_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="Markdown 文件超过 2 MB，请下载后查看",
+        )
+
+    chunks = bytearray()
+    try:
+        async for chunk in runner_client.read_file(
+            principal.user.id,
+            relative,
+        ):
+            chunks.extend(chunk)
+            if len(chunks) > MAX_MARKDOWN_PREVIEW_BYTES:
+                raise HTTPException(
+                    status_code=413,
+                    detail="Markdown 文件超过 2 MB，请下载后查看",
+                )
+    except RunnerError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    try:
+        content = chunks.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail="Markdown 文件不是有效的 UTF-8 文本",
+        ) from exc
+    return JSONResponse(
+        {"relative_path": relative, "content": content},
+        headers={"Cache-Control": "no-store"},
+    )
