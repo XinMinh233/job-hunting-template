@@ -39,6 +39,7 @@ Web 服务负责身份、业务状态、排队、事件持久化、配额和代�
 /etc/jobhunt/web.env                 Web 配置和真实 DeepSeek Key
 /etc/jobhunt/runner.env              Runner 配置，不含真实 Key
 /var/lib/jobhunt/app/                SQLite 数据库
+/var/lib/jobhunt/users/              root:root 0711，只可穿过、不可列目录
 /var/lib/jobhunt/users/<uuid>/
   home/                              Claude 会话与用户 HOME，0700
   workspace/                         独立 Git 仓库，0700

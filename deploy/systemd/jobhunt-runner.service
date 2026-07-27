@@ -17,7 +17,8 @@ UMask=0077
 PrivateTmp=yes
 PrivateDevices=no
 ProtectHome=yes
-ProtectSystem=full
+# Runner 需要调用 useradd/usermod 更新 /etc 中的系统账号文件。
+ProtectSystem=true
 ReadWritePaths=/etc -/run/jobhunt /var/lib/jobhunt/users /var/lib/jobhunt-runner /var/lib/jobhunt-staging
 ProtectKernelTunables=yes
 ProtectKernelModules=yes

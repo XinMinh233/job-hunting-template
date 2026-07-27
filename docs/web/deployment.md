@@ -36,6 +36,14 @@ bash deploy/install-ubuntu.sh
 
 脚本创建专用服务用户、目录、虚拟环境和 systemd 文件，按 `requirements.lock` 安装生产依赖，但故意不启动服务。请检查复制到 `/opt/jobhunt/app` 的版本与 `TEMPLATE_VERSION`。
 
+`/var/lib/jobhunt/users` 使用 `0711 root:root`：隔离用户可以穿过父目录到达自己的 UUID 目录，但不能列出父目录内容；每个 UUID 用户目录、HOME 和 workspace 仍由 Runner 设置为 `0700`。脚本也会创建 `0750 caddy:caddy` 的 `/var/log/caddy`，供非特权 Caddy 服务写访问日志。可检查：
+
+```bash
+stat -c '%a %U:%G %n' /var/lib/jobhunt/users /var/log/caddy
+```
+
+预期分别为 `711 root:root` 和 `750 caddy:caddy`。如果前者误设为 `0700`，`jh_*` 用户即使拥有自己的 workspace，也会因为不能穿过父目录而无法初始化 Git。
+
 ## 3. 配置环境
 
 ```bash
@@ -68,6 +76,15 @@ set +a
 systemctl enable --now jobhunt-runner.service
 ```
 
+Runner 需要调用 `useradd`、`usermod` 更新 `/etc/passwd`、`/etc/shadow`、`/etc/group` 等系统账号文件，因此 unit 使用 `ProtectSystem=true`，保护 `/usr` 和启动目录但不把 `/etc` 设为只读。启动后检查 Runner 看到的 `/etc`：
+
+```bash
+RUNNER_PID="$(systemctl show -p MainPID --value jobhunt-runner.service)"
+nsenter -t "$RUNNER_PID" -m findmnt -T /etc -o TARGET,SOURCE,FSTYPE,OPTIONS
+```
+
+输出必须包含 `rw`；如果是 `ro`，创建 Web 用户会报 `useradd: cannot lock /etc/passwd`，不要通过手工预建 `jh_*` 用户绕过 Runner。
+
 ```bash
 sudo -u jobhunt-web sh -c 'set -a; . /etc/jobhunt/web.env; set +a; exec /opt/jobhunt/venv/bin/alembic -c /opt/jobhunt/app/alembic.ini upgrade head'
 sudo -u jobhunt-web sh -c 'set -a; . /etc/jobhunt/web.env; set +a; exec /opt/jobhunt/venv/bin/jobhunt-admin bootstrap-admin --username admin'
@@ -77,23 +94,64 @@ sudo -u jobhunt-web sh -c 'set -a; . /etc/jobhunt/web.env; set +a; exec /opt/job
 
 ## 5. Caddy
 
-将 `deploy/Caddyfile` 合并到 `/etc/caddy/Caddyfile`，并为 Caddy 服务设置域名：
+将 `deploy/Caddyfile` 合并到 `/etc/caddy/Caddyfile`，并为 Caddy 服务设置公网域名。专用新服务器可以先备份默认文件再安装；已经承载其他站点时必须合并站点块，不能覆盖：
 
 ```bash
+cp -a /etc/caddy/Caddyfile /etc/caddy/Caddyfile.before-jobhunt
+install -o root -g root -m 0644 deploy/Caddyfile /etc/caddy/Caddyfile
 install -o root -g root -m 0644 deploy/caddy.env.example /etc/jobhunt/caddy.env
 install -d -o root -g root -m 0755 /etc/systemd/system/caddy.service.d
 install -o root -g root -m 0644 deploy/systemd/caddy-jobhunt.conf /etc/systemd/system/caddy.service.d/jobhunt.conf
 ```
 
-编辑 `/etc/jobhunt/caddy.env` 后验证并重载：
+编辑 `/etc/jobhunt/caddy.env`，`JOBHUNT_DOMAIN` 只写域名或 IP，不带 `https://`、端口和末尾斜杠；同时把 `/etc/jobhunt/web.env` 的 `JOBHUNT_PUBLIC_BASE_URL` 设置为对应的完整 `https://` 地址。
+
+Caddy CLI 不会自动获得 systemd `EnvironmentFile` 中的变量，因此验证前必须显式加载。首次配置、修改 `caddy.env` 或服务当前未运行时使用 `restart`：
 
 ```bash
+set -a
+. /etc/jobhunt/caddy.env
+set +a
+
 systemctl daemon-reload
 caddy validate --config /etc/caddy/Caddyfile
-systemctl reload caddy
+systemctl restart caddy
 ```
 
-确认公网 `/internal/deepseek/anthropic/v1/models` 返回 404，而本机 FastAPI 端口没有监听 `0.0.0.0`。
+以后只修改 Caddyfile 且没有修改环境变量时，验证后可使用 `systemctl reload caddy`。确认公网 `/internal/deepseek/anthropic/v1/models` 返回 404，而本机 FastAPI 端口没有监听 `0.0.0.0`。
+
+### 暂无公网域名时的 IP 测试
+
+生产部署仍应使用公网域名和浏览器信任的证书。只有公网 IP 时，可以临时测试完整 HTTPS、Secure Cookie 和反向代理链路：
+
+```bash
+# /etc/jobhunt/caddy.env
+JOBHUNT_DOMAIN=203.0.113.10
+
+# /etc/jobhunt/web.env
+JOBHUNT_COOKIE_SECURE=true
+JOBHUNT_PUBLIC_BASE_URL=https://203.0.113.10
+```
+
+模板的 `default_sni {$JOBHUNT_DOMAIN}` 用于处理访问裸 IP 时不携带 SNI、且公网 IP 经 NAT 映射到服务器私网地址的情况。加载配置并重启 Caddy/Web 后，可绕过公网回环直接测试本机：
+
+```bash
+set -a
+. /etc/jobhunt/caddy.env
+set +a
+
+caddy validate --config /etc/caddy/Caddyfile
+systemctl restart caddy jobhunt-web
+
+curl --insecure \
+  --resolve "${JOBHUNT_DOMAIN}:443:127.0.0.1" \
+  --silent --output /dev/null --write-out '%{http_code}\n' \
+  "https://${JOBHUNT_DOMAIN}/login"
+```
+
+预期返回 `200`。Caddy 的本地 CA 不能自动安装到非特权服务或远程浏览器的信任库时，日志可能出现 `failed to install root certificate`；只要随后显示本地证书签发成功，临时测试可以继续。浏览器仍会显示证书不受信任，`--insecure` 也只能用于这一步测试，不能写入生产验收脚本。
+
+获得域名后，将 DNS A/AAAA 记录正确指向服务器，分别更新 `JOBHUNT_DOMAIN` 和 `JOBHUNT_PUBLIC_BASE_URL`，再重启 Caddy 和 Web。之后测试必须去掉 `--insecure`；原 IP 登录 Cookie 不会迁移到新域名，用户重新登录即可，聊天和文件数据不受影响。IP 本地证书模式不满足生产 HTTPS 门槛。
 
 ## 6. 启动
 

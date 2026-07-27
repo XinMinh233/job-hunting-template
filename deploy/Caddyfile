@@ -1,3 +1,7 @@
+{
+	default_sni {$JOBHUNT_DOMAIN}
+}
+
 {$JOBHUNT_DOMAIN} {
 	encode zstd gzip
 
@@ -23,4 +27,3 @@
 		format json
 	}
 }
-

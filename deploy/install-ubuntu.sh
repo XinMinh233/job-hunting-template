@@ -31,11 +31,14 @@ python3 -m venv /opt/jobhunt/venv
 /opt/jobhunt/venv/bin/pip install --no-deps --no-build-isolation /opt/jobhunt/app
 
 install -d -o jobhunt-web -g jobhunt-web -m 0700 /var/lib/jobhunt/app
-install -d -o root -g root -m 0700 /var/lib/jobhunt/users
+# 只允许隔离用户穿过父目录；各 UUID 用户目录仍由 Runner 设为 0700。
+install -d -o root -g root -m 0711 /var/lib/jobhunt/users
 install -d -o root -g root -m 0700 /var/lib/jobhunt-runner
 install -d -o jobhunt-web -g jobhunt-web -m 0700 /var/lib/jobhunt-staging
 install -d -o root -g jobhunt-web -m 0750 /run/jobhunt
 install -d -o root -g root -m 0755 /etc/jobhunt
+# deploy/Caddyfile 的文件日志由非特权 caddy 用户创建。
+install -d -o caddy -g caddy -m 0750 /var/log/caddy
 
 install -o root -g root -m 0644 deploy/systemd/jobhunt-runner.service /etc/systemd/system/
 install -o root -g root -m 0644 deploy/systemd/jobhunt-web.service /etc/systemd/system/

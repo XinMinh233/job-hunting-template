@@ -40,6 +40,7 @@ Runner 是唯一 root 常驻进程，也是最高风险组件：
 - 上传批次目录由 root 持有并设为只读，原文件和提取文本均为 `0444`；Claude 可以读取，但不能通过普通文件写入修改原始资料。
 - PDF/DOCX 解析在独立低权限子进程中进行，限制 20 秒 CPU、512 MB 地址空间、输出体积和文件描述符；Web 端 30 秒未完成就终止。
 - registry 为 `0600`，服务 `UMask=0077`。
+- Runner 的 systemd unit 使用 `ProtectSystem=true` 保护系统程序，但必须保留 `/etc` 可写以调用 `useradd`、`usermod`；普通 Claude transient unit 仍使用严格只读系统和工作目录写白名单。
 
 修改 Runner 时应优先增加固定动作，而不是增加“通用执行”接口。任何 `command`、`path`、`env` 或 `linux_username` 外部参数都会破坏设计。
 
