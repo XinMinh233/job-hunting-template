@@ -4,6 +4,8 @@ let csrf = sessionStorage.getItem("csrf") || "";
 let currentChat = null;
 let currentJob = null;
 let eventSource = null;
+let submittingPrompt = false;
+let composingPrompt = false;
 
 function toast(message) {
   const node = $("#toast");
@@ -28,6 +30,27 @@ async function api(url, options = {}) {
 
 function formatTokens(value) {
   return value >= 1000000 ? `${(value / 1000000).toFixed(1)}m` : value >= 1000 ? `${(value / 1000).toFixed(1)}k` : String(value);
+}
+
+function setComposerEnabled(enabled) {
+  $("#prompt").disabled = !enabled;
+  $("#composer button").disabled = !enabled;
+}
+
+function renderWelcome() {
+  const content = $("#welcome-template").content.cloneNode(true);
+  $("#messages").replaceChildren(content);
+}
+
+function showNewChatState({clearPrompt = true, focus = false} = {}) {
+  currentChat = null;
+  $("#chat-title").textContent = "开始一段求职工作";
+  $("#job-status").textContent = "选择一个命令，或直接输入消息";
+  $("#stop-job").hidden = true;
+  if (clearPrompt) $("#prompt").value = "";
+  setComposerEnabled(!currentJob && !submittingPrompt);
+  renderWelcome();
+  if (focus) $("#prompt").focus();
 }
 
 function addMessage(role, content, pending = false) {
@@ -59,62 +82,121 @@ async function loadChats(selectFirst = true) {
   const list = $("#chat-list");
   list.replaceChildren();
   for (const chat of chats) {
-    const button = document.createElement("button");
-    button.className = chat.id === currentChat ? "active" : "";
-    button.textContent = chat.title;
-    button.addEventListener("click", () => selectChat(chat));
-    list.append(button);
+    const row = document.createElement("div");
+    row.className = `chat-list-item${chat.id === currentChat ? " active" : ""}`;
+    const selectButton = document.createElement("button");
+    selectButton.className = "chat-select";
+    selectButton.textContent = chat.title;
+    selectButton.title = chat.title;
+    selectButton.addEventListener("click", () => selectChat(chat));
+    const archiveButton = document.createElement("button");
+    archiveButton.className = "chat-archive";
+    archiveButton.type = "button";
+    archiveButton.textContent = "×";
+    archiveButton.title = `删除会话：${chat.title}`;
+    archiveButton.setAttribute("aria-label", `删除会话：${chat.title}`);
+    archiveButton.addEventListener("click", () => archiveChat(chat));
+    row.append(selectButton, archiveButton);
+    list.append(row);
   }
-  if (selectFirst && !currentChat && chats.length) await selectChat(chats[0]);
+  const selectedChat = chats.find((chat) => chat.id === currentChat);
+  if (selectedChat) {
+    $("#chat-title").textContent = selectedChat.title;
+  } else if (selectFirst && !currentChat && chats.length) {
+    await selectChat(chats[0]);
+  } else if (!currentChat) {
+    showNewChatState({clearPrompt: false});
+  } else {
+    showNewChatState();
+  }
 }
 
 async function newChat() {
-  const chat = await api("/api/chats", {method: "POST", body: JSON.stringify({title: "新会话"})});
-  currentChat = chat.id;
+  if (currentJob || submittingPrompt) {
+    toast("请等待当前任务结束后再新建会话");
+    return;
+  }
+  showNewChatState({focus: true});
   await loadChats(false);
-  await selectChat(chat);
+  if (innerWidth < 900) $(".sidebar").classList.remove("open");
+}
+
+async function archiveChat(chat) {
+  if (chat.active_job_id || (currentJob && chat.id === currentChat)) {
+    toast("运行中的会话不能删除");
+    return;
+  }
+  if (!confirm(`删除会话“${chat.title}”？`)) return;
+  try {
+    await api(`/api/chats/${chat.id}/archive`, {method: "POST"});
+    if (chat.id === currentChat) showNewChatState({focus: true});
+    await loadChats(false);
+    toast("会话已删除");
+  } catch (exc) {
+    toast(exc.message);
+  }
 }
 
 async function selectChat(chat) {
+  if (submittingPrompt) return;
+  if (currentJob && chat.id !== currentChat) {
+    toast("请等待当前任务结束后再切换会话");
+    return;
+  }
   currentChat = chat.id;
+  currentJob = chat.active_job_id || null;
   $("#chat-title").textContent = chat.title;
   $("#job-status").textContent = chat.claude_session_id ? "已连接 Claude 会话" : "新的 Claude 会话";
-  $("#prompt").disabled = false;
-  $("#composer button").disabled = false;
+  setComposerEnabled(!currentJob);
   const messages = await api(`/api/chats/${chat.id}/messages`);
   $("#messages").replaceChildren();
   if (!messages.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state simple";
-    empty.innerHTML = "<p class='eyebrow'>NEW CHAT</p><h2>从一个具体目标开始。</h2><p>描述职位、粘贴 JD，或输入 /onboard。</p>";
-    $("#messages").append(empty);
+    renderWelcome();
   }
   messages.forEach((item) => addMessage(item.role, item.content));
   if (chat.active_job_id) {
-    currentJob = chat.active_job_id;
     $("#stop-job").hidden = false;
     const assistant = addMessage("assistant", "正在恢复任务进度…", true);
     streamJob(chat.active_job_id, assistant);
+  } else {
+    $("#stop-job").hidden = true;
   }
   await loadChats(false);
   if (innerWidth < 900) $(".sidebar").classList.remove("open");
 }
 
 async function sendPrompt(value) {
-  if (!currentChat || currentJob || !value.trim()) return;
+  if (currentJob || submittingPrompt || !value.trim()) return;
   const text = value.trim();
-  $("#prompt").value = "";
-  addMessage("user", text);
-  const assistant = addMessage("assistant", "正在排队…", true);
+  let assistant = null;
+  submittingPrompt = true;
+  setComposerEnabled(false);
   try {
+    if (!currentChat) {
+      const chat = await api("/api/chats", {method: "POST", body: JSON.stringify({title: "新会话"})});
+      currentChat = chat.id;
+      $("#chat-title").textContent = chat.title;
+      $("#job-status").textContent = "新的 Claude 会话";
+      await loadChats(false);
+    }
+    $("#prompt").value = "";
+    addMessage("user", text);
+    assistant = addMessage("assistant", "正在排队…", true);
     const result = await api(`/api/chats/${currentChat}/messages`, {method: "POST", body: JSON.stringify({content: text})});
     currentJob = result.job_id;
     $("#stop-job").hidden = false;
     $("#job-status").textContent = "任务排队中";
     streamJob(result.job_id, assistant);
   } catch (exc) {
-    assistant.textContent = exc.message;
-    assistant.parentElement.classList.add("error");
+    if (assistant) {
+      assistant.textContent = exc.message;
+      assistant.parentElement.classList.add("error");
+    } else {
+      toast(exc.message);
+    }
+  } finally {
+    submittingPrompt = false;
+    setComposerEnabled(!currentJob);
   }
 }
 
@@ -148,6 +230,7 @@ function streamJob(jobId, body) {
         eventSource.close();
         currentJob = null;
         $("#stop-job").hidden = true;
+        setComposerEnabled(true);
         $("#job-status").textContent = type === "done" ? "任务完成" : "任务失败";
         await Promise.all([loadUsage(), loadFiles(), loadChats(false)]);
       }
@@ -192,8 +275,19 @@ async function loadFiles() {
 
 $("#new-chat").addEventListener("click", newChat);
 $("#composer").addEventListener("submit", (event) => { event.preventDefault(); sendPrompt($("#prompt").value); });
+$("#prompt").addEventListener("compositionstart", () => { composingPrompt = true; });
+$("#prompt").addEventListener("compositionend", () => { composingPrompt = false; });
 $("#prompt").addEventListener("keydown", (event) => {
-  if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); sendPrompt(event.currentTarget.value); }
+  if (
+    event.key === "Enter"
+    && !event.shiftKey
+    && !event.isComposing
+    && !composingPrompt
+    && event.keyCode !== 229
+  ) {
+    event.preventDefault();
+    sendPrompt(event.currentTarget.value);
+  }
 });
 $("#messages").addEventListener("click", (event) => {
   const button = event.target.closest("[data-prompt]");
@@ -222,6 +316,8 @@ $("#logout").addEventListener("click", async () => {
   location.href = "/login";
 });
 $("#mobile-menu").addEventListener("click", () => $(".sidebar").classList.toggle("open"));
+
+showNewChatState({clearPrompt: false});
 
 (async () => {
   try {

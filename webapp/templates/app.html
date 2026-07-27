@@ -28,24 +28,25 @@
       <div><h1 id="chat-title">开始一段求职工作</h1><p id="job-status">选择会话或新建会话</p></div>
       <button id="stop-job" class="danger-ghost" hidden>停止任务</button>
     </header>
-    <section id="messages" class="messages">
+    <template id="welcome-template">
       <div class="empty-state">
         <p class="eyebrow">GET STARTED</p>
         <h2>你今天想推进哪一件事？</h2>
         <p>可以直接对话，也可以使用模板命令。</p>
         <div class="prompt-grid">
           <button data-prompt="/onboard">/onboard<br><span>建立个人求职档案</span></button>
-          <button data-prompt="/match "> /match<br><span>评估职位匹配度</span></button>
-          <button data-prompt="/tailor "> /tailor<br><span>定制简历与求职信</span></button>
-          <button data-prompt="/scout "> /scout<br><span>调查公司与职位</span></button>
+          <button data-prompt="/match ">/match<br><span>评估职位匹配度</span></button>
+          <button data-prompt="/tailor ">/tailor<br><span>定制简历与求职信</span></button>
+          <button data-prompt="/scout ">/scout<br><span>调查公司与职位</span></button>
         </div>
       </div>
-    </section>
+    </template>
+    <section id="messages" class="messages"></section>
     <form id="composer" class="composer">
-      <textarea id="prompt" rows="1" maxlength="100000" placeholder="输入消息，Shift + Enter 换行…" disabled></textarea>
+      <textarea id="prompt" rows="1" maxlength="100000" placeholder="输入消息，Shift + Enter 换行…"></textarea>
       <div class="composer-actions">
         <span>Enter 发送</span>
-        <button class="primary round" type="submit" disabled>发送</button>
+        <button class="primary round" type="submit">发送</button>
       </div>
     </form>
   </main>
@@ -62,4 +63,3 @@
 </div>
 {% endblock %}
 {% block scripts %}<script src="/static/app.js"></script>{% endblock %}
-

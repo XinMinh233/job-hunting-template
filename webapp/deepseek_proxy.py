@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -15,6 +16,7 @@ from .models import DailyUsage, Job, User
 from .security import verify_proxy_token
 from .time_utils import quota_day
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/internal/deepseek/anthropic", tags=["internal"])
 ALLOWED_PATHS = {"v1/messages", "v1/messages/count_tokens", "v1/models"}
 MAX_PROXY_BODY = 32 * 1024 * 1024
@@ -153,10 +155,30 @@ async def proxy(api_path: str, request: Request):
             body_json = json.loads(body)
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             raise HTTPException(status_code=400, detail="请求 JSON 无效") from exc
-        if body_json.get("model") not in {
+        received_model = body_json.get("model")
+        allowed_models = {
             settings.primary_model,
             settings.light_model,
-        }:
+        }
+        allowed_models.update(
+            model.removesuffix("[1m]")
+            for model in tuple(allowed_models)
+            if model.endswith("[1m]")
+        )
+        if (
+            not isinstance(received_model, str)
+            or received_model not in allowed_models
+        ):
+            model_for_log = (
+                received_model[:160]
+                if isinstance(received_model, str)
+                else type(received_model).__name__
+            )
+            logger.warning(
+                "拒绝未允许模型：received=%r allowed=%s",
+                model_for_log,
+                sorted(allowed_models),
+            )
             raise HTTPException(status_code=400, detail="模型不在固定允许清单")
 
     upstream = f"{settings.deepseek_base_url}/{normalized}"

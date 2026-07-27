@@ -193,3 +193,29 @@ def test_user_cannot_send_to_another_users_chat():
         )
     assert history.status_code == 404
     assert send.status_code == 404
+
+
+def test_archiving_selected_chat_removes_it_from_chat_list():
+    create_user("archive.user", "archive-password-123")
+    with TestClient(app) as client:
+        login = client.post(
+            "/api/auth/login",
+            json={
+                "username": "archive.user",
+                "password": "archive-password-123",
+            },
+        )
+        csrf = login.json()["csrf_token"]
+        created = client.post(
+            "/api/chats",
+            headers={"X-CSRF-Token": csrf},
+            json={"title": "待删除会话"},
+        )
+        chat_id = created.json()["id"]
+        archived = client.post(
+            f"/api/chats/{chat_id}/archive",
+            headers={"X-CSRF-Token": csrf},
+        )
+        chats = client.get("/api/chats")
+    assert archived.status_code == 200
+    assert all(chat["id"] != chat_id for chat in chats.json())

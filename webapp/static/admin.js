@@ -81,11 +81,13 @@ function renderJobs(jobs) {
   table.replaceChildren();
   for (const job of jobs.slice(0, 30)) {
     const row = document.createElement("tr");
-    row.innerHTML = `<td><code></code></td><td><code></code></td><td><span class="badge"></span></td><td></td><td><div class="row-actions"></div></td>`;
+    row.innerHTML = `<td><code></code></td><td><code></code></td><td><span class="badge"></span></td><td></td><td class="job-error"></td><td><div class="row-actions"></div></td>`;
     row.children[0].querySelector("code").textContent = shortId(job.id);
     row.children[1].querySelector("code").textContent = shortId(job.user_id);
     $(".badge", row).textContent = stateLabel(job.state);
     row.children[3].textContent = new Date(job.created_at).toLocaleString();
+    row.children[4].textContent = job.error || "—";
+    if (job.error) row.children[4].title = job.error;
     if (["queued", "running"].includes(job.state)) {
       $(".row-actions", row).append(button("停止", async () => {
         await api(`/api/admin/jobs/${job.id}/stop`, {method: "POST"});
@@ -171,4 +173,3 @@ $("#logout").addEventListener("click", async () => {
 });
 
 loadAll().catch((exc) => toast(exc.message));
-

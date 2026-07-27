@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import json
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 
@@ -106,6 +107,29 @@ def test_proxy_rejects_unpinned_model_before_upstream(monkeypatch):
         )
     assert response.status_code == 400
     assert called is False
+
+
+def test_proxy_accepts_canonical_name_for_context_model(monkeypatch):
+    received_model = None
+
+    def upstream(request: httpx.Request) -> httpx.Response:
+        nonlocal received_model
+        received_model = json.loads(request.content)["model"]
+        return httpx.Response(200, json={"usage": {}})
+
+    configured_proxy(monkeypatch, upstream)
+    canonical_model = settings.primary_model.removesuffix("[1m]")
+    with TestClient(app, client=("127.0.0.1", 50000)) as client:
+        user_id, job_id = create_proxy_job()
+        response = client.post(
+            "/internal/deepseek/anthropic/v1/messages",
+            headers={
+                "Authorization": f"Bearer {mint_proxy_token(user_id, job_id)}"
+            },
+            json={"model": canonical_model, "messages": []},
+        )
+    assert response.status_code == 200
+    assert received_model == canonical_model
 
 
 def test_disabling_user_revokes_existing_proxy_token(monkeypatch):
